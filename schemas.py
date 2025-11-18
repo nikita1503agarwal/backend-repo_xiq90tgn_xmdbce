@@ -1,48 +1,58 @@
 """
-Database Schemas
+Database Schemas for LDI/SD Prototype
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model corresponds to a MongoDB collection (lowercased class name).
 """
-
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
 
-# Example schemas (replace with your own):
+class Participant(BaseModel):
+    name: str = Field(..., description="Full name of participant")
+    email: str = Field(..., description="Unique email of participant")
+    cohort: Optional[str] = Field(None, description="Cohort or batch identifier")
+    role: Optional[str] = Field(None, description="Role, e.g., participant/mentor/admin")
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+class SessionTopic(BaseModel):
+    title: str
+    date: datetime
+    description: Optional[str] = None
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class PictureCard(BaseModel):
+    user_id: str = Field(..., description="Participant identifier (email or id)")
+    topic: str = Field(..., description="Session topic title or id")
+    image_url: str = Field(..., description="Public URL to the uploaded image")
+    caption: Optional[str] = None
+    session_date: Optional[datetime] = None
 
-# Add your own schemas here:
-# --------------------------------------------------
+class VoiceNote(BaseModel):
+    user_id: str
+    topic: str
+    audio_url: str
+    transcript: Optional[str] = None
+    duration_sec: Optional[int] = None
+    session_date: Optional[datetime] = None
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Thread(BaseModel):
+    user_id: str
+    topic: str
+    content: str
+    session_date: Optional[datetime] = None
+    likes: int = 0
+
+class Attendance(BaseModel):
+    user_id: str
+    topic: str
+    session_date: datetime
+
+class Pitch(BaseModel):
+    user_id: str
+    topic: str
+    session_date: datetime
+    selected_for_sd: bool = False
+
+class Selection(BaseModel):
+    user_id: str
+    topic: str
+    session_date: datetime
+    status: str = Field("selected", description="selected/rejected/waitlist")
